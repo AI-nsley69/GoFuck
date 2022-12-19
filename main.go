@@ -28,7 +28,7 @@ func main() {
     // Optimize the nodes
     nodes = optimizer.Optimize(nodes)
     // Interpret the nodes
-    interpreter.Interpret(nodes)
+    fmt.Printf(interpreter.Run(nodes))
     fmt.Println("")
 }
 

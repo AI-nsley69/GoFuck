@@ -9,47 +9,44 @@ import (
 
 func Optimize(nodes []parser.Node) []parser.Node {
     i := 0;
+    lim := len(nodes)
     var newNodes []parser.Node
     current := nodes[i]
-    for i < len(nodes) {
+    for i < lim {
         current = nodes[i]
-        switch current.(type) {
-            case parser.PlusNode:
+        switch fmt.Sprintf("%T", current) {
+            case "parser.PlusNode":
                 delta := 0
-                for true {
-                    current := nodes[i]
-                    if (fmt.Sprintf("%T", current) == "parser.PlusNode") {
-                        delta += int(reflect.ValueOf(current).Int())
-                    } else {
-                        break
-                    }
+                delta += int(reflect.ValueOf(current).Int())
+                for fmt.Sprintf("T%", PeekNext(nodes, i)) == "parser.PlusNode" {
                     i++
+                    current := nodes[i]
+                    delta += int(reflect.ValueOf(current).Int())
                 }
+
                 newNodes = append(newNodes, parser.PlusNode(delta))
                 
-            case parser.PointerNode:
+            case "parser.PointerNode":
                 delta := 0
-                for true {
-                    current := nodes[i]
-                    if (fmt.Sprintf("%T", current) == "parser.PointerNode") {
-                        delta += int(reflect.ValueOf(current).Int())
-                    } else {
-                        break
-                    }
+                delta += int(reflect.ValueOf(current).Int())
+                for fmt.Sprintf("T%", PeekNext(nodes, i)) == "parser.PointerNode" {
                     i++
+                    current := nodes[i]
+                    delta += int(reflect.ValueOf(current).Int())
                 }
+               
                 newNodes = append(newNodes, parser.PointerNode(delta))
 
-            case parser.PrintNode: newNodes = append(newNodes, current)
-            case parser.InputNode: newNodes = append(newNodes, current)
+            case "parser.PrintNode": newNodes = append(newNodes, parser.PrintNode{})
+            case "parser.InputNode": newNodes = append(newNodes, parser.InputNode{})
 
-            case parser.LoopNode: {
+            case "parser.LoopNode": {
                 var newLoop []parser.Node 
                 for _, node := range reflect.ValueOf(current).Interface().(parser.LoopNode) {
                     newLoop = append(newLoop, node)
                 }
-                newLoop = Optimize(newLoop)
-                newNodes = append(newNodes, parser.LoopNode(newLoop))
+                value := Optimize(newLoop)
+                newNodes = append(newNodes, parser.LoopNode(value))
             }
         }
         
@@ -58,3 +55,12 @@ func Optimize(nodes []parser.Node) []parser.Node {
 
     return newNodes
 }
+
+func PeekNext(nodes []parser.Node, i int) parser.Node {
+    next := i +1
+    if (next >= len(nodes)) {
+        return parser.InputNode{}
+    }
+    return nodes[next]
+}
+
